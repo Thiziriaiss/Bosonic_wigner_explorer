@@ -4,6 +4,7 @@ import {
   CAT_ALPHA_MAX,
   CAT_ALPHA_MIN,
   CAT_CUTOFF,
+  applyCatZ,
   applyParity,
   catState,
   photonParity,
@@ -60,9 +61,9 @@ self.onmessage = (event: MessageEvent<CatRequest>) => {
     size: GRID_SIZE,
   });
 
-  const psi = catState(cutoff, alpha, req.logical);
+  let psi = catState(cutoff, alpha, req.logical);
   for (const gate of req.gates) {
-    if (gate === "X") applyParity(psi);
+    psi = gate === "X" ? applyParity(psi) : applyCatZ(psi, alpha);
   }
   const rho = densityFromVector(psi);
 

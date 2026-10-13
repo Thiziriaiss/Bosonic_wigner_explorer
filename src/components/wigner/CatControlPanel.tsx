@@ -88,6 +88,13 @@ const X_INFO = (
   </>
 );
 
+const Z_INFO = (
+  <>
+    <p className="mb-1 font-semibold">Logical phase flip</p>
+    <Tex block>{String.raw`\hat Z_L = |\mathcal C_\alpha^+\rangle\langle\mathcal C_\alpha^-| + |\mathcal C_\alpha^-\rangle\langle\mathcal C_\alpha^+|`}</Tex>
+  </>
+);
+
 const TAIL_INFO = (
   <>
     <p className="mb-1 font-semibold">Truncation error</p>
@@ -230,6 +237,14 @@ export function CatControlPanel(props: CatControlPanelProps) {
               className="cursor-help rounded border border-border bg-background px-1.5 py-0.5 text-[0.62rem] text-foreground transition-colors hover:bg-accent"
             >
               <Tex>{String.raw`\hat X_L`}</Tex> — bit flip
+            </button>
+          </HoverInfo>
+          <HoverInfo align="left" info={Z_INFO}>
+            <button
+              onClick={() => props.onGate("Z")}
+              className="cursor-help rounded border border-border bg-background px-1.5 py-0.5 text-[0.62rem] text-foreground transition-colors hover:bg-accent"
+            >
+              <Tex>{String.raw`\hat Z_L`}</Tex> — phase flip
             </button>
           </HoverInfo>
           <button

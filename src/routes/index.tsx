@@ -33,7 +33,7 @@ function Index() {
           to="/cat"
           className="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          Cat qubit
+          Cat
         </Link>
       </div>
       <p className="absolute right-4 bottom-3 text-[0.72rem] text-muted-foreground">

@@ -35,7 +35,34 @@ export function catState(n: number, alpha: number, logical: LogicalState): CVect
   return normalizeVector(out);
 }
 
-export type CatGate = "X";
+export type CatGate = "X" | "Z";
+
+/**
+ * Logical Z as the ideal Zeno gate: the strong-confinement limit of a drive
+ * eps (a + a†) under two-photon dissipation, which acts as sigma_x between the
+ * cats, |C+><C-| + |C-><C+|. Exact for states inside the code space.
+ */
+export function applyCatZ(v: CVector, alpha: number): CVector {
+  const n = v.re.length;
+  const plus = catState(n, alpha, "+");
+  const minus = catState(n, alpha, "-");
+  // <C|v> with real cat amplitudes.
+  const overlap = (c: CVector): [number, number] => {
+    let re = 0;
+    let im = 0;
+    for (let k = 0; k < n; k++) {
+      re += (c.re[k] ?? 0) * (v.re[k] ?? 0);
+      im += (c.re[k] ?? 0) * (v.im[k] ?? 0);
+    }
+    return [re, im];
+  };
+  const [pRe, pIm] = overlap(plus);
+  const [mRe, mIm] = overlap(minus);
+  const out = zeroVector(n);
+  addScaled(out, plus, mRe, mIm);
+  addScaled(out, minus, pRe, pIm);
+  return normalizeVector(out);
+}
 
 /** Logical X: the parity operator e^{i pi a† a}, i.e. (-1)^n on Fock amplitudes. */
 export function applyParity(v: CVector): CVector {

@@ -230,7 +230,7 @@ export function ControlPanel(props: ControlPanelProps) {
           <Undo2 className="size-4" strokeWidth={2} />
         </Link>
         <h1 className="text-[0.78rem] font-semibold tracking-tight text-foreground">
-          GKP Wigner explorer
+          GKP qubit Wigner explorer
         </h1>
       </div>
 
