@@ -1,12 +1,13 @@
 import { ClientOnly, createFileRoute } from "@tanstack/react-router";
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
 
 import { CatControlPanel } from "@/components/wigner/CatControlPanel";
+import { CatEvolutionPanel } from "@/components/wigner/CatEvolutionPanel";
 import { Tex } from "@/components/wigner/Tex";
 
 import { useCatSimulation } from "@/hooks/useCatSimulation";
-import { CAT_ALPHA, CAT_CUTOFF } from "@/lib/quantum/cat";
-import { PHASE_LIMIT } from "@/lib/quantum/protocol";
+import { CAT_ALPHA, CAT_CUTOFF, type CatGate } from "@/lib/quantum/cat";
+import { PHASE_LIMIT, TIME_WINDOW } from "@/lib/quantum/protocol";
 import type { Lattice, LogicalState } from "@/lib/quantum/state";
 
 const WignerScene = lazy(() => import("@/components/wigner/WignerScene"));
@@ -42,23 +43,65 @@ function CatPage() {
   const [alpha, setAlpha] = useState(CAT_ALPHA);
   const [logical, setLogical] = useState<LogicalState>("0");
   const [panelWidth, setPanelWidth] = useState(304);
+  const [gates, setGates] = useState<Array<CatGate>>([]);
+  const [kappa1, setKappa1] = useState(0);
+  const [kappaPhi, setKappaPhi] = useState(0);
+  const [timeWindow, setTimeWindow] = useState(TIME_WINDOW);
+  const [playing, setPlaying] = useState(false);
+  const [frameIndex, setFrameIndex] = useState(0);
+  const [showEvolution, setShowEvolution] = useState(false);
 
-  const sim = useCatSimulation({ cutoff, alpha, logical });
-  const reference = sim.stats
-    ? Math.max(Math.abs(sim.stats.min), Math.abs(sim.stats.max), 1e-6)
-    : 0.32;
+  const sim = useCatSimulation({ cutoff, alpha, logical, gates, kappa1, kappaPhi, timeWindow });
+  const loadedFrames = sim.frames.filter(Boolean).length;
+
+  useEffect(() => {
+    setFrameIndex(0);
+    setPlaying(kappa1 > 0 || kappaPhi > 0);
+  }, [cutoff, alpha, logical, gates, kappa1, kappaPhi, timeWindow]);
+
+  useEffect(() => {
+    if (!playing) return;
+    const timer = window.setInterval(() => {
+      setFrameIndex((i) => {
+        const next = i + 1;
+        if (next >= sim.frameCount) return 0;
+        return sim.frames[next] ? next : i;
+      });
+    }, 90);
+    return () => window.clearInterval(timer);
+  }, [playing, sim.frameCount, sim.frames]);
+
+  const activeIndex = Math.min(frameIndex, Math.max(0, sim.frames.length - 1));
+  const frame = sim.frames[activeIndex] ?? sim.frames[0] ?? null;
+  const reference = useMemo(() => {
+    const first = sim.frames[0];
+    if (!first) return 0.32;
+    return Math.max(Math.abs(first.stats.min), Math.abs(first.stats.max), 1e-6);
+  }, [sim.frames]);
+
+  // Keep the last rendered surface so the canvas (and camera) survives recomputes.
+  const lastScene = useRef<{
+    coords: Float64Array;
+    values: Float64Array;
+    size: number;
+    reference: number;
+  } | null>(null);
+  if (sim.coords && frame) {
+    lastScene.current = { coords: sim.coords, values: frame.values, size: sim.size, reference };
+  }
+  const scene = lastScene.current;
 
   return (
     <main className="flex min-h-screen flex-col bg-background md:h-screen md:flex-row md:overflow-hidden">
       <div className="relative h-[55vh] min-h-[320px] w-full md:h-screen md:min-h-0 md:w-0 md:min-w-0 md:flex-1 md:basis-0">
         <ClientOnly fallback={<PlotFallback label="preparing plot…" />}>
           <Suspense fallback={<PlotFallback label="loading renderer…" />}>
-            {sim.coords && sim.values ? (
+            {scene ? (
               <WignerScene
-                coords={sim.coords}
-                values={sim.values}
-                size={sim.size}
-                reference={reference}
+                coords={scene.coords}
+                values={scene.values}
+                size={scene.size}
+                reference={scene.reference}
                 limit={PHASE_LIMIT}
                 lattice={UNIT_GRID}
                 units="plain"
@@ -68,6 +111,13 @@ function CatPage() {
             )}
           </Suspense>
         </ClientOnly>
+        {showEvolution && (
+          <CatEvolutionPanel
+            stats={sim.frames.map((f) => f?.stats)}
+            activeIndex={activeIndex}
+            onClose={() => setShowEvolution(false)}
+          />
+        )}
         <div className="pointer-events-none absolute bottom-3 left-4 text-[0.72rem] text-muted-foreground">
           <Tex>{String.raw`W(q,p)\;\cdot\; q,p \in [-${PHASE_LIMIT}, +${PHASE_LIMIT}]\;\cdot\; \alpha = ${alpha.toFixed(2)}`}</Tex>
         </div>
@@ -103,8 +153,26 @@ function CatPage() {
         onCutoff={setCutoff}
         logical={logical}
         onLogical={setLogical}
-        stats={sim.stats}
-        truncationWarning={(sim.stats?.tailPopulation ?? 0) > 2e-3}
+        gates={gates}
+        onGate={(g) => setGates((prev) => [...prev, g])}
+        onReset={() => setGates([])}
+        kappa1={kappa1}
+        onKappa1={setKappa1}
+        kappaPhi={kappaPhi}
+        onKappaPhi={setKappaPhi}
+        timeWindow={timeWindow}
+        onTimeWindow={setTimeWindow}
+        playing={playing}
+        onPlaying={setPlaying}
+        frameIndex={activeIndex}
+        onFrameIndex={setFrameIndex}
+        frameCount={sim.frameCount}
+        loadedFrames={loadedFrames}
+        computing={sim.computing}
+        showEvolution={showEvolution}
+        onShowEvolution={setShowEvolution}
+        stats={frame?.stats ?? null}
+        truncationWarning={(frame?.stats.tailPopulation ?? 0) > 2e-3}
       />
     </main>
   );

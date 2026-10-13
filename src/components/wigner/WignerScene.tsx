@@ -464,6 +464,12 @@ export default function WignerScene({
         <ViewSetter request={view} controls={controls} />
       </Canvas>
       <ColorBar />
+      <p className="pointer-events-none absolute right-4 bottom-3 text-[0.72rem] text-muted-foreground select-none">
+        by Thiziri Aissaoui (with AI)
+      </p>
+      <p className="pointer-events-none absolute top-4 left-1/2 -translate-x-1/2 text-[0.72rem] whitespace-nowrap text-muted-foreground select-none">
+        Drag the plot to orbit, scroll to zoom.
+      </p>
       <div className="absolute top-4 left-4 flex flex-col gap-1">
         {(["top", "q", "p", "iso"] as Array<ViewKey>).map((k) => {
           const { Icon, title } = VIEWS[k];

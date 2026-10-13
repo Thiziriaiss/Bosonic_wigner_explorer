@@ -1,9 +1,9 @@
 /**
  * Two-component cat qubit in a truncated Fock basis, real amplitude alpha.
  *
- *   |0_L> = |C_alpha^+> = (|alpha> + |-alpha>) / N_+   (even photon number)
- *   |1_L> = |C_alpha^-> = (|alpha> - |-alpha>) / N_-   (odd photon number)
- *   |+/-_L> = (|0_L> +/- |1_L>) / sqrt(2)
+ *   |+_L> = |C_alpha^+> = (|alpha> + |-alpha>) / N_+   (even photon number)
+ *   |-_L> = |C_alpha^-> = (|alpha> - |-alpha>) / N_-   (odd photon number)
+ *   |0/1_L> = (|+_L> +/- |-_L>) / sqrt(2) = |+/-alpha> + O(e^{-2 alpha^2})
  *
  * With x = (a + a†)/sqrt(2), |alpha> is centred at q = sqrt(2) alpha, p = 0.
  */
@@ -27,12 +27,23 @@ export function catState(n: number, alpha: number, logical: LogicalState): CVect
   }
   normalizeVector(even);
   normalizeVector(odd);
-  if (logical === "0") return even;
-  if (logical === "1") return odd;
+  if (logical === "+") return even;
+  if (logical === "-") return odd;
   const out = zeroVector(n);
   addScaled(out, even, 1, 0);
-  addScaled(out, odd, logical === "+" ? 1 : -1, 0);
+  addScaled(out, odd, logical === "0" ? 1 : -1, 0);
   return normalizeVector(out);
+}
+
+export type CatGate = "X";
+
+/** Logical X: the parity operator e^{i pi a† a}, i.e. (-1)^n on Fock amplitudes. */
+export function applyParity(v: CVector): CVector {
+  for (let k = 1; k < v.re.length; k += 2) {
+    v.re[k] = -(v.re[k] ?? 0);
+    v.im[k] = -(v.im[k] ?? 0);
+  }
+  return v;
 }
 
 /** <(-1)^{a† a}> */
@@ -47,9 +58,14 @@ export interface CatRequest {
   cutoff: number;
   alpha: number;
   logical: LogicalState;
+  gates: Array<CatGate>;
+  kappa1: number;
+  kappaPhi: number;
+  timeWindow: number;
 }
 
 export interface CatStats {
+  time: number;
   min: number;
   max: number;
   purity: number;
@@ -58,10 +74,7 @@ export interface CatStats {
   parity: number;
 }
 
-export interface CatMessage {
-  id: number;
-  coords: Float64Array;
-  size: number;
-  values: Float64Array;
-  stats: CatStats;
-}
+export type CatMessage =
+  | { type: "meta"; id: number; coords: Float64Array; frameCount: number; size: number }
+  | { type: "frame"; id: number; index: number; values: Float64Array; stats: CatStats }
+  | { type: "done"; id: number };

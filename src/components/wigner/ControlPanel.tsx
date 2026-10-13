@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { LineChart, Pause, Play, RotateCcw } from "lucide-react";
+import { LineChart, Pause, Play, RotateCcw, Undo2 } from "lucide-react";
 
 import {
   FOCK_CUTOFF_MAX,
@@ -221,15 +221,17 @@ export function ControlPanel(props: ControlPanelProps) {
       className="flex w-full shrink-0 flex-col overflow-y-auto border-border bg-card md:h-screen md:w-[var(--panel-w,19rem)] md:border-l"
     >
       <div className="px-3 pt-2 pb-0.5">
-        <Link to="/" className="text-[0.6rem] text-muted-foreground hover:text-foreground">
-          ← all codes
+        <Link
+          to="/"
+          title="Back to all codes"
+          aria-label="Back to all codes"
+          className="mb-1 inline-flex rounded border border-border bg-background p-1 text-foreground shadow-sm transition-colors hover:bg-accent"
+        >
+          <Undo2 className="size-4" strokeWidth={2} />
         </Link>
         <h1 className="text-[0.78rem] font-semibold tracking-tight text-foreground">
           GKP Wigner explorer
         </h1>
-        <p className="text-[0.6rem] leading-snug text-muted-foreground">
-          Drag the plot to orbit, scroll to zoom.
-        </p>
       </div>
 
       <Section title="Code word">

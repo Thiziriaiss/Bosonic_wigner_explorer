@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-4 text-center">
+    <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-4 text-center">
       <div>
         <h1 className="text-3xl font-semibold text-foreground">Bosonic Code Explorer</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -36,6 +36,9 @@ function Index() {
           Cat qubit
         </Link>
       </div>
+      <p className="absolute right-4 bottom-3 text-[0.72rem] text-muted-foreground">
+        by Thiziri Aissaoui (with AI)
+      </p>
     </main>
   );
 }
