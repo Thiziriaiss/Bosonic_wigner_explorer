@@ -192,7 +192,12 @@ function GkpPage() {
         cutoff={cutoff}
         onCutoff={setCutoff}
         logical={logical}
-        onLogical={setLogical}
+        onLogical={(l) => {
+          setLogical(l);
+          setGates([]);
+          setKappa1(0);
+          setKappaPhi(0);
+        }}
         gates={gates}
         onGate={(g) => setGates((prev) => [...prev, g])}
         onReset={() => setGates([])}
