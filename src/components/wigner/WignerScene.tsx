@@ -370,6 +370,8 @@ export interface WignerSceneProps {
   reference: number;
   limit: number;
   lattice?: Lattice;
+  /** "sqrtpi": axes and ticks in units of sqrt(pi) (GKP). "plain": bare q, p. */
+  units?: "sqrtpi" | "plain";
   showSamples?: boolean;
 }
 
@@ -378,7 +380,7 @@ export interface WignerSceneProps {
  * units of sqrt(pi); the axis label itself carries the /sqrt(pi). When the
  * lattice is rectangular the labels are written as multiples of r (or of 1/r).
  */
-function makeTicks(spacing: number, limit: number, unit?: "r" | "invr") {
+function makeTicks(spacing: number, limit: number, unit?: "r" | "invr" | "plain") {
   const out: Array<{ k: number; v: number; tex: string }> = [];
   if (!(spacing > 0)) return out;
   for (let k = -4; k <= 4; k++) {
@@ -386,7 +388,9 @@ function makeTicks(spacing: number, limit: number, unit?: "r" | "invr") {
     const v = k * spacing;
     if (Math.abs(v) >= limit) continue;
     let tex: string;
-    if (unit === "r") {
+    if (unit === "plain") {
+      tex = String(Math.round(v * 100) / 100);
+    } else if (unit === "r") {
       tex = k === 1 ? "r" : k === -1 ? "-r" : `${k}r`;
     } else if (unit === "invr") {
       tex = String.raw`${k === 1 ? "" : k === -1 ? "-" : String(k)}\tfrac{1}{r}`;
@@ -407,15 +411,19 @@ export default function WignerScene({
   reference,
   limit,
   lattice = SQUARE_LATTICE,
+  units = "sqrtpi",
   showSamples = false,
 }: WignerSceneProps) {
   const controls = useRef(null);
   const [view, setView] = useState<{ key: ViewKey; n: number } | null>(null);
   const goTo = (key: ViewKey) => setView((v) => ({ key, n: (v?.n ?? 0) + 1 }));
 
+  const plain = units === "plain";
   const rect = Math.abs(Math.abs(lattice.l1[0]) - Math.abs(lattice.l2[1])) > 1e-9;
-  const qTicks = makeTicks(Math.abs(lattice.l1[0]) / 2, limit, rect ? "r" : undefined);
-  const pTicks = makeTicks(Math.abs(lattice.l2[1]) / 2, limit, rect ? "invr" : undefined);
+  const qUnit = plain ? "plain" : rect ? "r" : undefined;
+  const pUnit = plain ? "plain" : rect ? "invr" : undefined;
+  const qTicks = makeTicks(Math.abs(lattice.l1[0]) / 2, limit, qUnit);
+  const pTicks = makeTicks(Math.abs(lattice.l2[1]) / 2, limit, pUnit);
 
   return (
     <div className="relative h-full w-full">
@@ -435,8 +443,8 @@ export default function WignerScene({
       />
         <LatticeFloor limit={limit} lattice={lattice} />
         <Axes limit={limit} height={3.4} />
-        <AxisLabel position={[limit + 1.3, 0, 0]} tex={String.raw`q/\sqrt{\pi}`} />
-        <AxisLabel position={[0, 0, -(limit + 1.3)]} tex={String.raw`p/\sqrt{\pi}`} />
+        <AxisLabel position={[limit + 1.3, 0, 0]} tex={plain ? "q" : String.raw`q/\sqrt{\pi}`} />
+        <AxisLabel position={[0, 0, -(limit + 1.3)]} tex={plain ? "p" : String.raw`p/\sqrt{\pi}`} />
 
         {qTicks.map((t) => (
           <AxisTick key={`q${t.k}`} position={[t.v, -0.35, 0]} label={t.tex} />

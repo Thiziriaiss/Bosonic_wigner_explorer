@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CatRouteImport } from './routes/cat'
+import { Route as GkpRouteImport } from './routes/gkp'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CatRoute = CatRouteImport.update({
+  id: '/cat',
+  path: '/cat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GkpRoute = GkpRouteImport.update({
+  id: '/gkp',
+  path: '/gkp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cat': typeof CatRoute
+  '/gkp': typeof GkpRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cat': typeof CatRoute
+  '/gkp': typeof GkpRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cat': typeof CatRoute
+  '/gkp': typeof GkpRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/cat' | '/gkp'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/cat' | '/gkp'
+  id: '__root__' | '/' | '/cat' | '/gkp'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CatRoute: typeof CatRoute
+  GkpRoute: typeof GkpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cat': {
+      id: '/cat'
+      path: '/cat'
+      fullPath: '/cat'
+      preLoaderRoute: typeof CatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gkp': {
+      id: '/gkp'
+      path: '/gkp'
+      fullPath: '/gkp'
+      preLoaderRoute: typeof GkpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CatRoute: CatRoute,
+  GkpRoute: GkpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
