@@ -73,12 +73,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "GKP Wigner explorer" },
-      { name: "description", content: "Interactive 3D Wigner function of a physical GKP qubit" },
-      { property: "og:title", content: "GKP Wigner explorer" },
+      { title: "Bosonic Wigner explorer" },
+      {
+        name: "description",
+        content: "Interactive 3D Wigner functions of bosonic codes: GKP and cat qubits",
+      },
+      { property: "og:title", content: "Bosonic Wigner explorer" },
       {
         property: "og:description",
-        content: "Interactive 3D Wigner function of a physical GKP qubit",
+        content: "Interactive 3D Wigner functions of bosonic codes: GKP and cat qubits",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
